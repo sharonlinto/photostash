@@ -15,6 +15,7 @@ from flask import Flask
 # TODO: Clean code pls (try catch blocks included, move files to dirs)
 # TODO: Perhaps configure the UI of the bot too????????
 # TODO: Write a setup README
+# TODO: Handle large files
 
 """
 Load environment
