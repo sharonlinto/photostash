@@ -8,8 +8,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask
 
-# TODO: file deletion after caching it (since we don't want to save it)
-# TODO: download full image (not compressed)
+# TODO: Figure out why requests are sometimes sent multiple times
+# TODO: Figure out how to delete images after they've been uploaded to GDrive
+# TODO: Figure out how to download full version of media (not compressed)
+# TODO: Clean code pls (try catch blocks included, move files to dirs)
+# TODO: Perhaps configure the UI of the bot too????????
+# TODO: Write a setup README
 
 """
 Load environment
