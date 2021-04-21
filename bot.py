@@ -11,6 +11,7 @@ from flask import Flask
 # TODO: Figure out why requests are sometimes sent multiple times
 # TODO: Figure out how to delete images after they've been uploaded to GDrive
 # TODO: Figure out how to download full version of media (not compressed)
+# TODO: Save file name better (use timestamp instead of file id)
 # TODO: Clean code pls (try catch blocks included, move files to dirs)
 # TODO: Perhaps configure the UI of the bot too????????
 # TODO: Write a setup README
