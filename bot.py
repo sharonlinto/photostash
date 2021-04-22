@@ -1,6 +1,8 @@
 import os
 import slack
 import requests
+import datetime
+from pprint import pprint
 from GoogleAPI import Create_Service
 from googleapiclient.http import MediaFileUpload
 from slackeventsapi import SlackEventAdapter
@@ -8,14 +10,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask
 
-# TODO: Figure out why requests are sometimes sent multiple times
-# TODO: Figure out how to delete images after they've been uploaded to GDrive
-# TODO: Figure out how to download full version of media (not compressed)
-# TODO: Save file name better (use timestamp instead of file id)
-# TODO: Clean code pls (try catch blocks included, move files to dirs)
-# TODO: Perhaps configure the UI of the bot too????????
-# TODO: Write a setup README
-# TODO: Handle large files
 
 """
 Load environment
@@ -88,9 +82,12 @@ def download_image(media_url, file_name, file_type):
     proper_file_name = f"{file_name}.{file_type}"
     local_file_name = f"cache/{proper_file_name}"
 
-    handler = open(local_file_name, "wb")
-    handler.write(media)
-    handler.close()
+    # Write to file
+    if not os.path.exists("cache"):
+        os.makedirs("cache")
+
+    with open(local_file_name, "wb") as file:
+        file.write(media)
 
     # Now with the media file written, we can copy image to GDrive
     file_metadata = {
@@ -98,16 +95,26 @@ def download_image(media_url, file_name, file_type):
         "parents": [os.environ["TARGET_FOLDER_ID"]],
     }
 
-    media_body = MediaFileUpload(local_file_name)
-    GOOGLE_SERVICE.files().create(
-        body=file_metadata, media_body=media_body, fields="id"
-    ).execute()
+    media_body = MediaFileUpload(local_file_name, resumable=True)
+    try:
+        GOOGLE_SERVICE.files().create(
+            body=file_metadata, media_body=media_body, fields="id"
+        ).execute()
+        media_body = None  # set to None so that we can delete file
+    except Exception as err:
+        return False
 
-    # After the file has been uploaded, delete it
-    # handler.close()
-    # os.remove(local_file_name)
+    try:
+        os.remove(local_file_name)
+    except PermissionError as err:
+        print(f"Failed to delete local file. Looks like a permision error: {err}")
+    except Exception as err:
+        print(f"Failed to delete local file. Looks like a permision error: {err}")
 
     return True
+
+
+stored_timestamps = set()
 
 
 @slack_event_adapter.on("message")
@@ -132,8 +139,9 @@ def handle_incoming_message(payload):
     ts = event.get("ts")
 
     # Make sure it isn't the bot that is sending the message
-    if user_id != BOT_ID:
-        print("I'm not the bot!")
+    if user_id != BOT_ID and ts not in stored_timestamps:
+        # NOTE: For some reason, Slack API might send multiple requests to double check
+        stored_timestamps.add(ts)
 
         # Check to see if files is part of the payload
         if "files" in event:
@@ -147,7 +155,15 @@ def handle_incoming_message(payload):
                 # If the file type is valid, upload to GDrive
                 if file_type in ACCEPTED_FILE_TYPES:
                     private_url = single_file["url_private"]
-                    file_name = single_file["id"]
+                    file_name = (
+                        str(
+                            datetime.datetime.fromtimestamp(float(ts)).strftime(
+                                "%Y-%m-%d--%H-%M-%S"
+                            )
+                        )
+                        + " "
+                        + single_file["id"]
+                    )
                     response = download_image(private_url, file_name, file_type)
 
                     # Tally based on the response
