@@ -60,7 +60,7 @@ def download_image(media_url, file_name, file_type):
     file_name : str
         The name to save the file
     file_type : str
-        File extension. Must be part of ACCEPTED_FILE_TYPES
+        File extension, which must be part of ACCEPTED_FILE_TYPES
 
     Returns
     -------
@@ -82,14 +82,15 @@ def download_image(media_url, file_name, file_type):
     proper_file_name = f"{file_name}.{file_type}"
     local_file_name = f"cache/{proper_file_name}"
 
-    # Write to file
+    # Make cache dir if it doesn't exist
     if not os.path.exists("cache"):
         os.makedirs("cache")
 
+    # Write temp file
     with open(local_file_name, "wb") as file:
         file.write(media)
 
-    # Now with the media file written, we can copy image to GDrive
+    # Now with the media file written, we can upload image to GDrive
     file_metadata = {
         "name": proper_file_name,
         "parents": [os.environ["TARGET_FOLDER_ID"]],
@@ -104,18 +105,20 @@ def download_image(media_url, file_name, file_type):
     except Exception as err:
         return False
 
+    # Now, delete the file (since we don't need a local copy)
     try:
         os.remove(local_file_name)
     except PermissionError as err:
         print(f"Failed to delete local file. Looks like a permision error: {err}")
     except Exception as err:
-        print(f"Failed to delete local file. Looks like a permision error: {err}")
+        print(f"Failed to delete local file.")
 
+    # Make sure to return true
     return True
 
 
+# Keep track of ts to avoid duplicate messages
 stored_timestamps = set()
-
 
 @slack_event_adapter.on("message")
 def handle_incoming_message(payload):
@@ -179,7 +182,7 @@ def handle_incoming_message(payload):
                 text += "files.\n" if success != 1 else "file.\n"
             if failure > 0:
                 text += f":x: Failed to upload {failure} "
-                text += "files.\n" if success != 1 else "file.\n"
+                text += "files.\n" if failure != 1 else "file.\n"
 
             # Post message to channel
             if text:
