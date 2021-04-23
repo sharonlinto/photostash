@@ -9,7 +9,7 @@ SLACK_TOKEN=<get from Slack API webpage>
 SIGNING_SECRET=<get from Slack API webpage>
 
 # GDrive folder URL: https://drive.google.com/drive/u/0/folders/<TARGET_FOLDER_ID>
-TARGET_FOLDER_ID=<get from Gdrive URL>
+TARGET_FOLDER_ID=<get from GDrive URL>
 ```
 
 ## Directory
