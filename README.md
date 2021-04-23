@@ -3,13 +3,27 @@
 ## About
 The OG PhotoStash app no longer works on Slack, so I'm going to make a new one!!!
 
-## .env file
+## Environment File
 ```
 SLACK_TOKEN=<get from Slack API webpage>
 SIGNING_SECRET=<get from Slack API webpage>
 
 # GDrive folder URL: https://drive.google.com/drive/u/0/folders/<TARGET_FOLDER_ID>
 TARGET_FOLDER_ID=<get from Gdrive URL>
+```
+
+## Directory
+```
+.
+├── src/
+│   ├── .env  
+│   ├── bot.py
+│   ├── GoogleAPI.py
+│   ├── token.json
+│   └── token.pickle
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 
 ## Running the App
