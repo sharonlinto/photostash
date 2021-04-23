@@ -2,7 +2,6 @@ import os
 import slack
 import requests
 import datetime
-from pprint import pprint
 from GoogleAPI import Create_Service
 from googleapiclient.http import MediaFileUpload
 from slackeventsapi import SlackEventAdapter
@@ -67,8 +66,11 @@ def download_image(media_url, file_name, file_type):
     bool
         True on success, False on failure
     """
+    # If the Google service is down, then we are screwed
+    if not GOOGLE_SERVICE:
+        return False
 
-    # Make GET request to retrieve data
+    # Make GET request to retrieve media file from Slack server
     media_data = requests.get(
         media_url, headers={"Authorization": f'Bearer {os.environ["SLACK_TOKEN"]}'}
     )
@@ -77,7 +79,7 @@ def download_image(media_url, file_name, file_type):
     if media_data.status_code != 200:
         return False
 
-    # Open the file
+    # Open file content and configure file names
     media = media_data.content
     proper_file_name = f"{file_name}.{file_type}"
     local_file_name = f"cache/{proper_file_name}"
@@ -86,11 +88,11 @@ def download_image(media_url, file_name, file_type):
     if not os.path.exists("cache"):
         os.makedirs("cache")
 
-    # Write temp file
+    # Write the media to a temp file so that we can upload to GDrive
     with open(local_file_name, "wb") as file:
         file.write(media)
 
-    # Now with the media file written, we can upload image to GDrive
+    # Set up metadata to upload to GDrive
     file_metadata = {
         "name": proper_file_name,
         "parents": [os.environ["TARGET_FOLDER_ID"]],
@@ -120,6 +122,7 @@ def download_image(media_url, file_name, file_type):
 # Keep track of ts to avoid duplicate messages
 stored_timestamps = set()
 
+
 @slack_event_adapter.on("message")
 def handle_incoming_message(payload):
     """
@@ -140,10 +143,14 @@ def handle_incoming_message(payload):
     channel_id = event.get("channel")
     user_id = event.get("user")
     ts = event.get("ts")
+    thread_ts = event.get("thread_ts", ts) # for media in threads
+    proper_date = datetime.datetime.fromtimestamp(float(ts)).strftime(
+        "%Y-%m-%d--%H-%M-%S"
+    )
 
     # Make sure it isn't the bot that is sending the message
     if user_id != BOT_ID and ts not in stored_timestamps:
-        # NOTE: For some reason, Slack API might send multiple requests to double check
+        # NOTE: For some reason, Slack API might send multiple requests
         stored_timestamps.add(ts)
 
         # Check to see if files is part of the payload
@@ -158,15 +165,7 @@ def handle_incoming_message(payload):
                 # If the file type is valid, upload to GDrive
                 if file_type in ACCEPTED_FILE_TYPES:
                     private_url = single_file["url_private"]
-                    file_name = (
-                        str(
-                            datetime.datetime.fromtimestamp(float(ts)).strftime(
-                                "%Y-%m-%d--%H-%M-%S"
-                            )
-                        )
-                        + " "
-                        + single_file["id"]
-                    )
+                    file_name = proper_date + " " + single_file["id"]
                     response = download_image(private_url, file_name, file_type)
 
                     # Tally based on the response
@@ -189,9 +188,9 @@ def handle_incoming_message(payload):
                 client.chat_postMessage(
                     channel=channel_id,
                     text=text,
-                    thread_ts=ts,
+                    thread_ts=thread_ts,
                 )
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
