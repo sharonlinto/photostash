@@ -3,24 +3,22 @@
 ## About
 The OG PhotoStash app no longer works on Slack, so I'm going to make a new one!!!
 
-## Todos
-- [x] Figure out why requests are sometimes sent multiple times
-- [x] Figure out how to delete images after they've been uploaded to GDrive
-- [x] Figure out how to download full version of media (not compressed)
-- [x] Save file name better (use timestamp instead of file id)
-- [x] Handle large files
-- [x] **Handle images inside threads**
-- [ ] Clean code pls (try catch blocks included, move files to dirs)
-- [ ] Perhaps configure the UI of the bot too????????
-- [ ] Write a setup README
+## .env file
+```
+SLACK_TOKEN=<get from Slack API webpage>
+SIGNING_SECRET=<get from Slack API webpage>
+
+# GDrive folder URL: https://drive.google.com/drive/u/0/folders/<TARGET_FOLDER_ID>
+TARGET_FOLDER_ID=<get from Gdrive URL>
+```
 
 ## Running the App
-Make sure to add the Slackbot to your channel
+Make sure to add the Slackbot to your channel, and that should be it!
 
 ## Running the Server
 Using ngrok.exe, run the command: ```ngrok http 5000```
-- Make sure that you update **Event Subscriptions** on the Slack API with endpoint in ngrok
-- Make sure that you update **Request URL** under Slash commands with endpoint in ngrok
+- Make sure that you update **Event Subscriptions** on the Slack API with server endpoint (to be edited)
 
 ## Creating GCP Project
-[Follow This Link](https://www.youtube.com/watch?v=6bzzpda63H0&ab_channel=JieJenn)
+[Follow This Link](https://www.youtube.com/watch?v=6bzzpda63H0)
+- Make sure to get the .json file from GCP in order to enable the login token

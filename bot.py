@@ -98,12 +98,13 @@ def download_image(media_url, file_name, file_type):
         "parents": [os.environ["TARGET_FOLDER_ID"]],
     }
 
+    # Perform the upload
     media_body = MediaFileUpload(local_file_name, resumable=True)
     try:
         GOOGLE_SERVICE.files().create(
             body=file_metadata, media_body=media_body, fields="id"
         ).execute()
-        media_body = None  # set to None so that we can delete file
+        media_body = None  # NOTE: set to None so that we can delete file
     except Exception as err:
         return False
 
