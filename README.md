@@ -26,10 +26,16 @@ SIGNING_SECRET=<get from Slack API webpage>
 ## Running the App
 Make sure to add the Slackbot to your channel, and that should be it!
 
+
 ## Running the Server
 Using ngrok.exe, run the command: ```ngrok http 5000```
 - Make sure that you update **Event Subscriptions** on the Slack API with server endpoint (to be edited)
 - Make sure that you update **Slash Commands** on the Slack API with server endpoint (to be edited)
+
+## Supported Slash Commands
+`/config-folder-id <folder_id>`: Sets the upload folder destination in Google Drive (retrieve from Google Drive Folder URL: /drive/u/0/folders/<folder_id>)
+`/current-folder-id`: Returns the folder ID of the current channel (only supports upload to one folder)
+
 
 ## Creating GCP Project
 [Follow This Link](https://www.youtube.com/watch?v=6bzzpda63H0)
